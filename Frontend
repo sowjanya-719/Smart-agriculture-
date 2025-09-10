@@ -1,0 +1,232 @@
+import React, { useRef, useState } from "react";
+import Webcam from "react-webcam";
+
+function App() {
+  const [activeTab, setActiveTab] = useState("leaf");
+  const webcamRef = useRef(null);
+  const [leafImage, setLeafImage] = useState(null);
+  const [soilResult, setSoilResult] = useState(null);
+  const [pestRisk, setPestRisk] = useState(null);
+  const [facingMode, setFacingMode] = useState("environment"); // rear camera by default
+
+  // Capture crop leaf image
+  const captureLeaf = () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setLeafImage(imageSrc);
+  };
+
+  // Dummy soil analysis
+  const handleSoilSubmit = (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const ph = form.ph.value;
+    const moisture = form.moisture.value;
+
+    if (ph < 5.5) {
+      setSoilResult("Soil is acidic → Add lime");
+    } else if (ph > 7.5) {
+      setSoilResult("Soil is alkaline → Add gypsum");
+    } else if (moisture < 30) {
+      setSoilResult("Soil moisture is low → Irrigation needed");
+    } else {
+      setSoilResult("Soil is healthy ✅");
+    }
+  };
+
+  // Dummy pest prediction
+  const checkPestRisk = () => {
+    setPestRisk("⚠️ High risk of fungal pest due to humidity");
+  };
+
+  // Toggle camera
+  const toggleCamera = () => {
+    setFacingMode(facingMode === "environment" ? "user" : "environment");
+  };
+
+  return (
+    <div style={{ fontFamily: "Arial, sans-serif", padding: "20px" }}>
+      <h1 style={{ textAlign: "center", color: "#2e7d32" }}>
+        🌾 Smart Farming Dashboard
+      </h1>
+
+      {/* Navigation Tabs */}
+      <div style={{ display: "flex", justifyContent: "center", margin: "20px" }}>
+        <button
+          onClick={() => setActiveTab("leaf")}
+          style={{
+            margin: "0 10px",
+            padding: "10px 20px",
+            cursor: "pointer",
+            backgroundColor: activeTab === "leaf" ? "#4CAF50" : "#ddd",
+            color: activeTab === "leaf" ? "white" : "black",
+            border: "none",
+            borderRadius: "5px",
+          }}
+        >
+          🌱 Leaf Scanner
+        </button>
+        <button
+          onClick={() => setActiveTab("soil")}
+          style={{
+            margin: "0 10px",
+            padding: "10px 20px",
+            cursor: "pointer",
+            backgroundColor: activeTab === "soil" ? "#4CAF50" : "#ddd",
+            color: activeTab === "soil" ? "white" : "black",
+            border: "none",
+            borderRadius: "5px",
+          }}
+        >
+          🏞️ Soil Test
+        </button>
+        <button
+          onClick={() => setActiveTab("pest")}
+          style={{
+            margin: "0 10px",
+            padding: "10px 20px",
+            cursor: "pointer",
+            backgroundColor: activeTab === "pest" ? "#4CAF50" : "#ddd",
+            color: activeTab === "pest" ? "white" : "black",
+            border: "none",
+            borderRadius: "5px",
+          }}
+        >
+          🐛 Pest Risk
+        </button>
+      </div>
+
+      {/* Leaf Scanner */}
+      {activeTab === "leaf" && (
+        <div style={{ textAlign: "center" }}>
+          <h2>🌱 Crop Leaf Scanner</h2>
+          {!leafImage ? (
+            <>
+              <Webcam
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                videoConstraints={{ facingMode }}
+                style={{ width: "320px", border: "2px solid #4CAF50", borderRadius: "10px" }}
+              />
+              <br />
+              <button
+                onClick={captureLeaf}
+                style={{
+                  marginTop: "10px",
+                  padding: "10px 20px",
+                  cursor: "pointer",
+                  backgroundColor: "#4CAF50",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "5px",
+                }}
+              >
+                📸 Capture Leaf
+              </button>
+              <br />
+              <button
+                onClick={toggleCamera}
+                style={{
+                  marginTop: "10px",
+                  padding: "8px 15px",
+                  cursor: "pointer",
+                  backgroundColor: "#2196F3",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "5px",
+                }}
+              >
+                🔄 Switch Camera
+              </button>
+            </>
+          ) : (
+            <>
+              <img
+                src={leafImage}
+                alt="leaf"
+                style={{ width: "320px", borderRadius: "10px", border: "2px solid #333" }}
+              />
+              <br />
+              <button
+                onClick={() => setLeafImage(null)}
+                style={{
+                  marginTop: "10px",
+                  padding: "10px 20px",
+                  cursor: "pointer",
+                  backgroundColor: "#f44336",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "5px",
+                }}
+              >
+                🔄 Retake
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Soil Test */}
+      {activeTab === "soil" && (
+        <div style={{ textAlign: "center" }}>
+          <h2>🏞️ Soil Condition Test</h2>
+          <form onSubmit={handleSoilSubmit}>
+            <label>
+              pH:
+              <input type="number" step="0.1" name="ph" required />
+            </label>
+            <br />
+            <label>
+              Moisture (%):
+              <input type="number" name="moisture" required />
+            </label>
+            <br />
+            <button
+              type="submit"
+              style={{
+                marginTop: "10px",
+                padding: "10px 20px",
+                cursor: "pointer",
+                backgroundColor: "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+              }}
+            >
+              🔬 Analyze Soil
+            </button>
+          </form>
+          {soilResult && (
+            <p style={{ marginTop: "15px", fontWeight: "bold" }}>{soilResult}</p>
+          )}
+        </div>
+      )}
+
+      {/* Pest Risk */}
+      {activeTab === "pest" && (
+        <div style={{ textAlign: "center" }}>
+          <h2>🐛 Pest Risk Prediction</h2>
+          <p>Check pest risk based on weather conditions.</p>
+          <button
+            onClick={checkPestRisk}
+            style={{
+              marginTop: "10px",
+              padding: "10px 20px",
+              cursor: "pointer",
+              backgroundColor: "#4CAF50",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+            }}
+          >
+            🌤️ Check Pest Risk
+          </button>
+          {pestRisk && (
+            <p style={{ marginTop: "15px", fontWeight: "bold" }}>{pestRisk}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
